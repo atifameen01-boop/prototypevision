@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProtoVision AI Studio - Prototype & Novelty Visualizer</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            900: '#0f172a',
+                        },
+                        tech: {
+                            bg: '#0b0f19',
+                            card: '#131b2e',
+                            border: '#212d4a',
+                            accent: '#00f2fe'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Mammoth JS for parsing .docx proposals in browser -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b0f19;
+            color: #f3f4f6;
+        }
+        .code-font {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b0f19;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #212d4a;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3b82f6;
+        }
+        .glow-accent {
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.15);
+        }
+        .bg-grid-pattern {
+            background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-tech-bg overflow-x-hidden text-slate-200">
+
+    <!-- Navigation Header -->
+    <header class="border-b border-tech-border bg-tech-card/80 backdrop-blur-md sticky top-0 z-40 px-4 py-3 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-teal-400 flex items-center justify-center text-white shadow-lg glow-accent">
+                <i class="fa-solid fa-cube text-xl"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-lg tracking-wide text-white flex items-center gap-2">
+                    ProtoVision <span class="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">AI Studio</span>
+                </h1>
+                <p class="text-xs text-slate-400">Novelty-Driven Hardware & Product Prototype Visualizer</p>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-3">
+            <button id="btn-templates-modal" class="text-xs px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition flex items-center gap-2">
+                <i class="fa-solid fa-wand-magic-sparkles text-amber-400"></i>
+                Preset Ideas
+            </button>
+            <button id="btn-export-patent-pdf" class="text-xs px-3 py-2 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/30 transition flex items-center gap-2">
+                <i class="fa-solid fa-file-pdf"></i>
+                Export Patent Brief
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Studio Content -->
+    <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-0 overflow-hidden">
+
+        <!-- LEFT PANEL: Specification & Novelty Engine (5 cols) -->
+        <section class="lg:col-span-5 border-r border-tech-border bg-tech-bg p-4 overflow-y-auto flex flex-col gap-5 max-h-[calc(100vh-61px)]">
+            
+            <!-- Product Identity Card -->
+            <div class="bg-tech-card border border-tech-border rounded-xl p-4 shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-semibold text-blue-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <i class="fa-solid fa-pen-ruler"></i> Concept Identity
+                    </span>
+                    <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded">Step 1</span>
+                </div>
+
+                <div class="space-y-3">
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-xs text-slate-300 font-medium">Prototype Name / Title</label>
+                            <div class="flex items-center gap-1.5">
+                                <label class="text-[10px] text-teal-300 hover:text-white bg-teal-600/30 hover:bg-teal-600/50 border border-teal-500/40 px-2 py-0.5 rounded-md transition flex items-center gap-1 cursor-pointer shadow-sm" title="Upload a .docx proposal to extract all prototype details">
+                                    <i class="fa-solid fa-file-word text-teal-400"></i> Import DOCX Proposal
+                                    <input type="file" id="file-docx-proposal" accept=".docx" class="hidden">
+                                </label>
+                                <button id="btn-auto-suggest" type="button" class="text-[10px] text-blue-300 hover:text-white bg-blue-600/30 hover:bg-blue-600/50 border border-blue-500/40 px-2 py-0.5 rounded-md transition flex items-center gap-1 shadow-sm" title="Auto-fill form factor and functional description from title">
+                                    <i class="fa-solid fa-wand-magic-sparkles text-amber-300 animate-pulse"></i> Auto Specs
+                                </button>
+                            </div>
+                        </div>
+                        <input type="text" id="input-title" placeholder="e.g. AeroRing - Haptic Smart Controller" 
+                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500 transition">
+                    </div>
+
+                    <!-- DOCX Import Summary Notification Banner -->
+                    <div id="docx-extracted-badge" class="hidden bg-teal-950/60 border border-teal-500/40 rounded-lg p-2.5 text-xs text-teal-200 space-y-1">
+                        <div class="flex items-center justify-between font-semibold">
+                            <span class="flex items-center gap-1.5 text-teal-300">
+                                <i class="fa-solid fa-circle-check text-teal-400"></i> DOCX Deep-Extraction Complete
+                            </span>
+                            <span id="docx-word-count" class="text-[10px] font-mono text-teal-400/80 bg-teal-900/60 px-1.5 py-0.5 rounded">0 words</span>
+                        </div>
+                        <p id="docx-extracted-summary" class="text-[11px] text-teal-200/80 leading-tight">Full document specifications loaded into workspace.</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs text-slate-300 mb-1 font-medium">Product Category</label>
+                            <select id="select-category" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:border-blue-500">
+                                <option value="Consumer Tech & Wearables">Consumer Tech & Wearables</option>
+                                <option value="Smart Home & IoT">Smart Home & IoT</option>
+                                <option value="Medical & Bio-Tech Device">Medical & Bio-Tech</option>
+                                <option value="Industrial & Robotics">Industrial & Robotics</option>
+                                <option value="Automotive & Mobility">Automotive & Mobility</option>
+                                <option value="Sci-Fi / Futuristic Hardware">Sci-Fi & Futuristic</option>
+                                <option value="Apparel & Footwear Tech">Apparel & Footwear Tech</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-300 mb-1 font-medium">Aesthetic / CAD Style</label>
+                            <select id="select-style" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:border-blue-500">
+                                <option value="Industrial Design Studio Render">Photorealistic Industrial Design</option>
+                                <option value="Exploded View Technical Diagram">Exploded Technical Diagram</option>
+                                <option value="Patent Line Drawing Draft">Patent Drawing Blueprint</option>
+                                <option value="Minimalist Anodized Aluminum">Anodized Metal & Glass</option>
+                                <option value="Transparent Cyberpunk Neomorphic">Transparent Cyberpunk</option>
+                                <option value="Matte Black Matte Finish Engineering Mockup">Matte Engineering Mockup</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Description & Novelty Box -->
+            <div class="bg-tech-card border border-tech-border rounded-xl p-4 shadow-sm flex-1 flex flex-col">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-semibold text-teal-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <i class="fa-solid fa-lightbulb"></i> Detailed Description & Unique Novelty
+                    </span>
+                    <button id="btn-enhance-prompt" class="text-xs text-teal-300 hover:text-teal-200 bg-teal-900/40 border border-teal-600/40 px-2.5 py-1 rounded-md transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-bolt"></i> AI Novelty Enhancer
+                    </button>
+                </div>
+
+                <div class="space-y-3 flex-1 flex flex-col">
+                    <div>
+                        <label class="block text-xs text-slate-300 mb-1">Functional Description & Form Factor</label>
+                        <textarea id="input-description" rows="4" placeholder="Describe the physical shape, ergonomics, key buttons, materials, and overall appearance..." 
+                            class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-teal-500 transition resize-y"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs text-slate-300 mb-1 flex items-center justify-between">
+                            <span>Key Novelty / Patentable Feature</span>
+                            <span class="text-[10px] text-teal-400">What makes this original?</span>
+                        </label>
+                        <textarea id="input-novelty" rows="3" placeholder="e.g. Micro liquid-cooling channels visible through sapphire crystal, modular magnetic sensor ring..." 
+                            class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-teal-500 transition resize-y"></textarea>
+                    </div>
+
+                    <!-- Optional Reference Sketch / Image Upload -->
+                    <div>
+                        <label class="block text-xs text-slate-300 mb-1 flex items-center justify-between">
+                            <span>Reference Sketch / Photo (Optional)</span>
+                            <span id="upload-status" class="text-[10px] text-slate-400">No image loaded</span>
+                        </label>
+                        <div class="flex items-center gap-2">
+                            <label class="cursor-pointer bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-slate-600 px-3 py-1.5 rounded-lg text-xs text-slate-300 flex items-center gap-2 transition w-full justify-center">
+                                <i class="fa-solid fa-upload"></i>
+                                <span>Upload Napkin Sketch / Drawing</span>
+                                <input type="file" id="file-sketch" accept="image/*" class="hidden">
+                            </label>
+                            <button id="btn-clear-sketch" class="hidden text-xs text-red-400 bg-red-900/30 border border-red-700/50 p-2 rounded-lg hover:bg-red-900/50" title="Clear upload">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                        <div id="sketch-preview-container" class="hidden mt-2 relative rounded-lg border border-slate-700 overflow-hidden max-h-24 bg-black/50 flex justify-center items-center">
+                            <img id="sketch-preview" src="" class="max-h-24 object-contain">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Generation Parameters & Trigger -->
+            <div class="bg-tech-card border border-tech-border rounded-xl p-4 shadow-sm space-y-3">
+                <div class="flex items-center justify-between">
+                    <label class="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                        <i class="fa-solid fa-sliders"></i> Aspect Ratio & Render Config
+                    </label>
+                </div>
+
+                <div class="grid grid-cols-4 gap-2">
+                    <button type="button" data-aspect="1:1" class="btn-aspect active bg-blue-600 border border-blue-400 text-white text-xs py-1.5 rounded-lg text-center font-mono font-medium transition">1:1</button>
+                    <button type="button" data-aspect="16:9" class="btn-aspect bg-slate-900 border border-slate-700 text-slate-300 hover:border-slate-500 text-xs py-1.5 rounded-lg text-center font-mono font-medium transition">16:9</button>
+                    <button type="button" data-aspect="4:3" class="btn-aspect bg-slate-900 border border-slate-700 text-slate-300 hover:border-slate-500 text-xs py-1.5 rounded-lg text-center font-mono font-medium transition">4:3</button>
+                    <button type="button" data-aspect="9:16" class="btn-aspect bg-slate-900 border border-slate-700 text-slate-300 hover:border-slate-500 text-xs py-1.5 rounded-lg text-center font-mono font-medium transition">9:16</button>
+                </div>
+
+                <button id="btn-generate-prototype" class="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-teal-500 hover:from-blue-500 hover:to-teal-400 text-white font-semibold py-3 rounded-xl shadow-lg glow-accent flex items-center justify-center gap-2 transition transform active:scale-95">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <span>Generate Prototype Render</span>
+                </button>
+            </div>
+
+            <!-- AI Novelty Analysis Summary Card -->
+            <div id="novelty-analysis-card" class="hidden bg-slate-900/90 border border-teal-500/30 rounded-xl p-3.5 text-xs space-y-2">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                    <span class="font-semibold text-teal-300 flex items-center gap-1.5">
+                        <i class="fa-solid fa-microchip"></i> AI Novelty & Spec Breakdown
+                    </span>
+                    <span class="text-[10px] text-teal-400/80 font-mono">Gemini Flash</span>
+                </div>
+                <div id="novelty-analysis-content" class="text-slate-300 space-y-2">
+                    <!-- Populated via JS -->
+                </div>
+            </div>
+
+        </section>
+
+
+        <!-- RIGHT PANEL: Interactive Canvas & Iteration Workspace (7 cols) -->
+        <section class="lg:col-span-7 bg-tech-bg p-4 flex flex-col gap-4 overflow-y-auto max-h-[calc(100vh-61px)]">
+            
+            <!-- Workspace Header / Toolbar -->
+            <div class="flex items-center justify-between bg-tech-card border border-tech-border rounded-xl px-4 py-2.5">
+                <div class="flex items-center gap-3">
+                    <span class="text-xs font-semibold text-slate-200 flex items-center gap-2">
+                        <i class="fa-solid fa-palette text-blue-400"></i> Render Workspace
+                    </span>
+                    <span id="badge-version" class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">
+                        v1.0 - Ready
+                    </span>
+                </div>
+
+                <!-- Annotation Tools -->
+                <div class="flex items-center gap-2">
+                    <button id="tool-select" title="Pan / View" class="btn-tool active p-1.5 w-8 h-8 rounded-lg bg-blue-600 text-white text-xs flex items-center justify-center border border-blue-400 transition">
+                        <i class="fa-solid fa-hand"></i>
+                    </button>
+                    <button id="tool-arrow" title="Add Arrow Annotation" class="btn-tool p-1.5 w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs flex items-center justify-center border border-slate-700 transition">
+                        <i class="fa-solid fa-arrow-right-long"></i>
+                    </button>
+                    <button id="tool-callout" title="Add Feature Label" class="btn-tool p-1.5 w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs flex items-center justify-center border border-slate-700 transition">
+                        <i class="fa-solid fa-tag"></i>
+                    </button>
+                    <button id="tool-clear-annotations" title="Clear Annotations" class="p-1.5 w-8 h-8 rounded-lg bg-slate-800 hover:bg-red-900/40 text-slate-400 hover:text-red-300 text-xs flex items-center justify-center border border-slate-700 transition">
+                        <i class="fa-solid fa-eraser"></i>
+                    </button>
+                    <div class="h-4 w-px bg-slate-700 mx-1"></div>
+                    <button id="btn-download-render" title="Download Canvas Image" class="p-1.5 w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs flex items-center justify-center border border-slate-700 transition">
+                        <i class="fa-solid fa-download"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Canvas Display Area -->
+            <div class="relative flex-1 min-h-[380px] bg-slate-950 border border-tech-border rounded-xl overflow-hidden flex items-center justify-center bg-grid-pattern group">
+                
+                <!-- Loading Overlay -->
+                <div id="render-loading" class="hidden absolute inset-0 z-30 bg-slate-950/80 backdrop-blur-md flex flex-col items-center justify-center gap-3 p-6 text-center">
+                    <div class="relative w-16 h-16">
+                        <div class="absolute inset-0 rounded-full border-4 border-blue-500/20 border-t-blue-500 animate-spin"></div>
+                        <div class="absolute inset-2 rounded-full border-4 border-teal-500/20 border-t-teal-400 animate-spin" style="animation-direction: reverse; animation-duration: 1.5s;"></div>
+                    </div>
+                    <div>
+                        <h3 id="loading-text" class="text-sm font-semibold text-white tracking-wide">Synthesizing Prototype Rendering...</h3>
+                        <p id="loading-subtext" class="text-xs text-slate-400 mt-1">Executing Gemini Flash Image model</p>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div id="empty-state" class="flex flex-col items-center justify-center p-8 text-center text-slate-500 space-y-3">
+                    <div class="w-16 h-16 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-600 text-2xl">
+                        <i class="fa-solid fa-compass-drafting"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-medium text-slate-300">No Prototype Rendered Yet</h3>
+                        <p class="text-xs text-slate-500 max-w-sm mt-1">Fill out the concept details on the left, upload a .docx proposal, or select a preset idea to start.</p>
+                    </div>
+                </div>
+
+                <!-- Render Canvas & Image Wrapper -->
+                <div id="canvas-container" class="hidden relative max-w-full max-h-full flex items-center justify-center p-2">
+                    <img id="prototype-image" class="max-h-[500px] max-w-full object-contain rounded-lg shadow-2xl border border-slate-800 select-none">
+                    <!-- Drawing Annotation Overlay Canvas -->
+                    <canvas id="annotation-canvas" class="absolute top-2 left-2 pointer-events-auto rounded-lg cursor-crosshair"></canvas>
+                </div>
+            </div>
+
+            <!-- Multi-Turn Iteration Bar -->
+            <div id="refinement-section" class="bg-tech-card border border-tech-border rounded-xl p-3.5 space-y-2">
+                <div class="flex items-center justify-between text-xs">
+                    <span class="font-semibold text-slate-300 flex items-center gap-1.5">
+                        <i class="fa-solid fa-rotate text-teal-400"></i> Iterative Prototype Refinement
+                    </span>
+                    <span class="text-[10px] text-slate-400">Gemini Multi-turn Session</span>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <input type="text" id="input-refine" placeholder="e.g. 'Add a ring of cyan LED indicators around the dial' or 'Show exploded internal view'..." 
+                        class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500 transition">
+                    <button id="btn-refine-prototype" class="bg-teal-600 hover:bg-teal-500 text-white font-medium px-4 py-2 rounded-lg text-xs flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-paper-plane"></i>
+                        <span>Iterate</span>
+                    </button>
+                </div>
+
+                <!-- Refinement Suggestion Tags -->
+                <div class="flex flex-wrap items-center gap-1.5 pt-1">
+                    <span class="text-[10px] text-slate-500 font-medium">Quick Tweaks:</span>
+                    <button class="tag-quick-refine text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-0.5 rounded border border-slate-700 transition">
+                        Show Exploded Internal View
+                    </button>
+                    <button class="tag-quick-refine text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-0.5 rounded border border-slate-700 transition">
+                        Change to Titanium Silver Matte
+                    </button>
+                    <button class="tag-quick-refine text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-0.5 rounded border border-slate-700 transition">
+                        Add Micro LED Display
+                    </button>
+                    <button class="tag-quick-refine text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-0.5 rounded border border-slate-700 transition">
+                        Show Ergonomic Handheld View
+                    </button>
+                </div>
+            </div>
+
+            <!-- Iteration History Gallery -->
+            <div id="history-section" class="bg-tech-card border border-tech-border rounded-xl p-3.5 space-y-2">
+                <div class="flex items-center justify-between text-xs">
+                    <span class="font-semibold text-slate-300 flex items-center gap-1.5">
+                        <i class="fa-solid fa-clock-rotate-left text-blue-400"></i> Render History & Versions
+                    </span>
+                    <span id="history-count" class="text-[10px] text-slate-400">0 revisions</span>
+                </div>
+                <div id="history-list" class="flex items-center gap-3 overflow-x-auto pb-1 min-h-[70px]">
+                    <span class="text-xs text-slate-500 italic">Render history will appear here...</span>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+
+    <!-- PRESET TEMPLATES MODAL -->
+    <div id="modal-templates" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-tech-card border border-tech-border rounded-2xl w-full max-w-2xl p-6 space-y-4 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-lightbulb text-amber-400"></i>
+                    Preset Prototype Ideas & Novel Concepts
+                </h3>
+                <button class="btn-close-modal text-slate-400 hover:text-white text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[60vh] overflow-y-auto pr-1">
+                
+                <!-- Template 1 -->
+                <div class="template-card border border-slate-800 hover:border-blue-500/50 bg-slate-900/60 p-3.5 rounded-xl cursor-pointer transition space-y-1.5"
+                    data-title="AeroRing Haptic Controller"
+                    data-category="Consumer Tech & Wearables"
+                    data-style="Industrial Design Studio Render"
+                    data-desc="Ergonomic titanized smart ring with micro-touch trackpad surface, biometric PPG optical sensor window, and magnetic dock contact pin."
+                    data-novelty="Modular magnetic ring inserts that expand sensor capabilities, paired with micro-haptic linear resonant actuators embedded in liquid metal body.">
+                    <div class="flex justify-between items-start">
+                        <h4 class="font-semibold text-xs text-blue-300">AeroRing Haptic Ring</h4>
+                        <span class="text-[9px] bg-blue-900/40 text-blue-400 px-1.5 py-0.5 rounded">Wearables</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 line-clamp-2">Micro-haptic smart ring with titanium body and liquid cooling channels for gestures.</p>
+                </div>
+
+                <!-- Template 2 -->
+                <div class="template-card border border-slate-800 hover:border-blue-500/50 bg-slate-900/60 p-3.5 rounded-xl cursor-pointer transition space-y-1.5"
+                    data-title="HydroSphere Solar Purifier"
+                    data-category="Smart Home & IoT"
+                    data-style="Minimalist Anodized Aluminum"
+                    data-desc="Spherical portable water purification capsule with dark sapphire glass solar dome, anodized aluminum base filter housing, and LED UV-C state indicator."
+                    data-novelty="Graphene-coated hydrophobic solar condenser chamber with vortex UV-C sterilization core.">
+                    <div class="flex justify-between items-start">
+                        <h4 class="font-semibold text-xs text-teal-300">HydroSphere Purifier</h4>
+                        <span class="text-[9px] bg-teal-900/40 text-teal-400 px-1.5 py-0.5 rounded">Eco Hardware</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 line-clamp-2">Spherical solar condenser water purifier with clear sapphire window and UV core.</p>
+                </div>
+
+                <!-- Template 3 -->
+                <div class="template-card border border-slate-800 hover:border-blue-500/50 bg-slate-900/60 p-3.5 rounded-xl cursor-pointer transition space-y-1.5"
+                    data-title="NeuroPulse BCI Earbuds"
+                    data-category="Medical & Bio-Tech Device"
+                    data-style="Transparent Cyberpunk Neomorphic"
+                    data-desc="Cybernetic in-ear audio monitor made of transparent polycarbonate revealing golden circuit traces, neural EEG contact nodes, and active noise dampening mesh."
+                    data-novelty="Non-invasive ear-canal EEG sensors combined with conductive silicone ear tips for brainwave feedback.">
+                    <div class="flex justify-between items-start">
+                        <h4 class="font-semibold text-xs text-amber-300">NeuroPulse BCI Earbuds</h4>
+                        <span class="text-[9px] bg-amber-900/40 text-amber-400 px-1.5 py-0.5 rounded">Bio-Tech</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 line-clamp-2">Transparent earbuds with neural EEG canal sensors and gold circuit traces.</p>
+                </div>
+
+                <!-- Template 4 -->
+                <div class="template-card border border-slate-800 hover:border-blue-500/50 bg-slate-900/60 p-3.5 rounded-xl cursor-pointer transition space-y-1.5"
+                    data-title="VortexWing Cargo Drone"
+                    data-category="Industrial & Robotics"
+                    data-style="Exploded View Technical Diagram"
+                    data-desc="Compact quad-rotor modular drone with carbon fiber arm struts, enclosed toroidal propellers, and central payload latching claw."
+                    data-novelty="Ducted quiet toroidal rotors with hot-swappable battery payload canister.">
+                    <div class="flex justify-between items-start">
+                        <h4 class="font-semibold text-xs text-indigo-300">VortexWing Drone</h4>
+                        <span class="text-[9px] bg-indigo-900/40 text-indigo-400 px-1.5 py-0.5 rounded">Robotics</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 line-clamp-2">Exploded blueprint view of carbon fiber quiet toroidal cargo drone.</p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- PATENT BRIEF EXPORT MODAL -->
+    <div id="modal-patent-export" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-tech-card border border-tech-border rounded-2xl w-full max-w-3xl p-6 space-y-4 shadow-2xl max-h-[90vh] flex flex-col">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-file-invoice text-blue-400"></i>
+                    Prototype Patent & Design Brief
+                </h3>
+                <button class="btn-close-modal text-slate-400 hover:text-white text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Printable Document Wrapper -->
+            <div id="printable-patent-doc" class="flex-1 overflow-y-auto bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4 text-xs text-slate-300 font-sans">
+                <div class="border-b border-slate-700 pb-3 flex justify-between items-end">
+                    <div>
+                        <h2 id="patent-doc-title" class="text-lg font-bold text-white tracking-wide">PROTOTYPE CONCEPT BRIEF</h2>
+                        <p id="patent-doc-category" class="text-xs text-blue-400 font-mono">Category: Consumer Electronics</p>
+                    </div>
+                    <div class="text-right font-mono text-[10px] text-slate-400">
+                        <span>Date: <span id="patent-doc-date">2026-09-27</span></span><br>
+                        <span>Doc ID: PV-PAT-<span id="patent-doc-id">88392</span></span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <h4 class="font-semibold text-slate-200 uppercase tracking-wider text-[11px] mb-1">Visual Prototype Figure</h4>
+                        <div class="bg-black rounded-lg border border-slate-800 p-1 flex items-center justify-center min-h-[200px]">
+                            <img id="patent-doc-image" class="max-h-52 object-contain rounded">
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div>
+                            <h4 class="font-semibold text-teal-300 uppercase tracking-wider text-[11px] mb-1">Detailed Description</h4>
+                            <p id="patent-doc-desc" class="text-slate-300 leading-relaxed text-[11px]">No description provided.</p>
+                        </div>
+
+                        <div>
+                            <h4 class="font-semibold text-amber-300 uppercase tracking-wider text-[11px] mb-1">Claimed Novelty & Innovations</h4>
+                            <p id="patent-doc-novelty" class="text-slate-300 leading-relaxed text-[11px]">No novelty claims specified.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="patent-doc-ai-analysis" class="border-t border-slate-800 pt-3 space-y-2">
+                    <h4 class="font-semibold text-blue-300 uppercase tracking-wider text-[11px]">Technical Specification Breakdown</h4>
+                    <div id="patent-doc-specs-content" class="bg-slate-950 p-3 rounded-lg border border-slate-800 font-mono text-[10px] text-slate-400 space-y-1">
+                        <!-- Filled JS -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-2">
+                <button id="btn-print-patent" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-4 py-2 rounded-lg flex items-center gap-2 transition">
+                    <i class="fa-solid fa-print"></i> Print / Save as PDF
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // Global Application State
+        const state = {
+            title: '',
+            category: 'Consumer Tech & Wearables',
+            style: 'Industrial Design Studio Render',
+            description: '',
+            novelty: '',
+            aspectRatio: '1:1',
+            uploadedSketchBase64: null,
+            activeRenderUrl: null,
+            activeNoveltyData: null,
+            chatHistory: [], // Stores conversation turns for Gemini Flash Image multi-turn editing
+            history: [], // Render versions gallery
+            activeTool: 'select', // select, arrow, callout
+            annotations: [] // Array of user drawn shapes
+        };
+
+        // API Configuration (Runs in Canvas runtime environment)
+        const API_KEY = ""; 
+        const GEMINI_IMAGE_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent?key=${API_KEY}`;
+        const GEMINI_TEXT_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${API_KEY}`;
+
+        // DOM Elements
+        const elTitle = document.getElementById('input-title');
+        const elCategory = document.getElementById('select-category');
+        const elStyle = document.getElementById('select-style');
+        const elDescription = document.getElementById('input-description');
+        const elNovelty = document.getElementById('input-novelty');
+        const elBtnAutoSuggest = document.getElementById('btn-auto-suggest');
+        const elFileDocx = document.getElementById('file-docx-proposal');
+        const elDocxBadge = document.getElementById('docx-extracted-badge');
+        const elDocxWordCount = document.getElementById('docx-word-count');
+        const elDocxSummary = document.getElementById('docx-extracted-summary');
+
+        const elFileSketch = document.getElementById('file-sketch');
+        const elSketchPreview = document.getElementById('sketch-preview');
+        const elSketchContainer = document.getElementById('sketch-preview-container');
+        const elBtnClearSketch = document.getElementById('btn-clear-sketch');
+        const elUploadStatus = document.getElementById('upload-status');
+
+        const elBtnEnhance = document.getElementById('btn-enhance-prompt');
+        const elBtnGenerate = document.getElementById('btn-generate-prototype');
+        const elBtnRefine = document.getElementById('btn-refine-prototype');
+        const elInputRefine = document.getElementById('input-refine');
+
+        const elRenderLoading = document.getElementById('render-loading');
+        const elLoadingText = document.getElementById('loading-text');
+        const elEmptyState = document.getElementById('empty-state');
+        const elCanvasContainer = document.getElementById('canvas-container');
+        const elPrototypeImg = document.getElementById('prototype-image');
+        const elAnnotationCanvas = document.getElementById('annotation-canvas');
+
+        const elNoveltyCard = document.getElementById('novelty-analysis-card');
+        const elNoveltyContent = document.getElementById('novelty-analysis-content');
+        const elHistoryList = document.getElementById('history-list');
+        const elHistoryCount = document.getElementById('history-count');
+        const elBadgeVersion = document.getElementById('badge-version');
+
+        // Aspect Ratio Selector Event
+        document.querySelectorAll('.btn-aspect').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.btn-aspect').forEach(b => {
+                    b.classList.remove('bg-blue-600', 'text-white', 'border-blue-400');
+                    b.classList.add('bg-slate-900', 'text-slate-300', 'border-slate-700');
+                });
+                const target = e.currentTarget;
+                target.classList.remove('bg-slate-900', 'text-slate-300', 'border-slate-700');
+                target.classList.add('bg-blue-600', 'text-white', 'border-blue-400');
+                state.aspectRatio = target.getAttribute('data-aspect');
+            });
+        });
+
+        // Enhanced DOCX Proposal File Upload & Deep Information Extraction Handler
+        elFileDocx.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            showToast("Reading full DOCX proposal document...", "blue");
+
+            const reader = new FileReader();
+            reader.onload = async function(event) {
+                const arrayBuffer = event.target.result;
+
+                try {
+                    // Extract raw text using Mammoth.js
+                    const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
+                    let extractedText = result.value || '';
+                    
+                    // Clean text (preserve paragraphs, remove duplicate empty lines)
+                    extractedText = extractedText.replace(/\r\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+
+                    if (!extractedText || extractedText.length === 0) {
+                        showToast("Could not extract readable text from document. Ensure it contains text, not embedded images.", "amber");
+                        return;
+                    }
+
+                    const wordCount = extractedText.split(/\s+/).filter(w => w.length > 0).length;
+                    showToast(`Extracted ${wordCount} words. Running deep technical analysis with Gemini AI...`, "teal");
+
+                    // Deep Extraction Prompt targeting all aspects of the document
+                    const prompt = `EXHAUSTIVE TECHNICAL PROPOSAL ANALYSIS & EXTRACTION TASK:
+
+You are receiving the complete text of a hardware / product proposal document (${wordCount} words). 
+Analyze the ENTIRE text thoroughly and perform an exhaustive technical extraction of all hardware details, physical form factors, mechanical systems, materials, electronic components, ergonomics, software/IoT capabilities, and patent novelty claims.
+
+--- COMPLETE PROPOSAL DOCUMENT BEGINS ---
+${extractedText}
+--- COMPLETE PROPOSAL DOCUMENT ENDS ---
+
+INSTRUCTIONS FOR EXTRACTION:
+1. title: Provide a clear, precise, and professional product title based on the document.
+2. category: Pick the BEST fitting category from: ["Consumer Tech & Wearables", "Smart Home & IoT", "Medical & Bio-Tech Device", "Industrial & Robotics", "Automotive & Mobility", "Sci-Fi / Futuristic Hardware", "Apparel & Footwear Tech"].
+3. style: Pick the BEST fitting visual render style from: ["Industrial Design Studio Render", "Exploded View Technical Diagram", "Patent Line Drawing Draft", "Minimalist Anodized Aluminum", "Transparent Cyberpunk Neomorphic", "Matte Black Matte Finish Engineering Mockup"].
+4. description: Provide an EXHAUSTIVE, HIGHLY DETAILED physical & functional description. Include exact materials mentioned, ergonomics, casing design, controls, displays, sensors, power modules, dimensions, visual aesthetic, and structural mechanisms. DO NOT shorten or skip details.
+5. novelty: Detail ALL unique, inventive, original, or patentable features mentioned in the document. Explain why they are novel.
+6. keyInnovations: A detailed list of 3-6 distinct patentable claims or technological highlights extracted from the document.
+7. suggestedMaterials: List all physical materials, metals, polymers, finishes, or alloys referenced or recommended for this prototype.
+8. noveltyAnalysis: A comprehensive 2-3 paragraph engineering synthesis summarizing the project scope, hardware architecture, and patent differentiation.`;
+
+                    const payload = {
+                        contents: [{ parts: [{ text: prompt }] }],
+                        systemInstruction: {
+                            parts: [{ text: "You are an expert Chief Technology Officer, Industrial Design Director, and Senior Patent Attorney. You perform deep, loss-less extractions of hardware specifications from technical proposals, ensuring no engineering feature or specification is overlooked." }]
+                        },
+                        generationConfig: {
+                            responseMimeType: "application/json",
+                            responseSchema: {
+                                type: "OBJECT",
+                                properties: {
+                                    title: { type: "STRING" },
+                                    category: { type: "STRING" },
+                                    style: { type: "STRING" },
+                                    description: { type: "STRING" },
+                                    novelty: { type: "STRING" },
+                                    keyInnovations: { type: "ARRAY", items: { type: "STRING" } },
+                                    suggestedMaterials: { type: "ARRAY", items: { type: "STRING" } },
+                                    noveltyAnalysis: { type: "STRING" }
+                                },
+                                propertyOrdering: ["title", "category", "style", "description", "novelty", "keyInnovations", "suggestedMaterials", "noveltyAnalysis"]
+                            }
+                        }
+                    };
+
+                    const data = await fetchWithBackoff(GEMINI_TEXT_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
+                        const parsedData = JSON.parse(data.candidates[0].content.parts[0].text);
+
+                        // Populate form fields with extracted content
+                        if (parsedData.title) elTitle.value = parsedData.title;
+                        if (parsedData.description) elDescription.value = parsedData.description;
+                        if (parsedData.novelty) elNovelty.value = parsedData.novelty;
+
+                        if (parsedData.category) {
+                            const matchCat = Array.from(elCategory.options).find(opt => opt.value.toLowerCase().includes(parsedData.category.toLowerCase()) || parsedData.category.toLowerCase().includes(opt.value.toLowerCase()));
+                            if (matchCat) elCategory.value = matchCat.value;
+                        }
+
+                        if (parsedData.style) {
+                            const matchStyle = Array.from(elStyle.options).find(opt => opt.value.toLowerCase().includes(parsedData.style.toLowerCase()) || parsedData.style.toLowerCase().includes(opt.value.toLowerCase()));
+                            if (matchStyle) elStyle.value = matchStyle.value;
+                        }
+
+                        // Store complete active novelty & specs data for AI Card & Patent Brief
+                        state.activeNoveltyData = {
+                            enhancedVisualPrompt: parsedData.description,
+                            noveltyAnalysis: parsedData.noveltyAnalysis || parsedData.novelty,
+                            keyInnovations: parsedData.keyInnovations || [],
+                            suggestedMaterials: parsedData.suggestedMaterials || []
+                        };
+
+                        // Render AI Novelty Card immediately
+                        renderNoveltyCard(state.activeNoveltyData);
+
+                        // Display confirmation badge
+                        elDocxWordCount.textContent = `${wordCount} words processed`;
+                        elDocxSummary.textContent = `Extracted: ${parsedData.keyInnovations?.length || 0} key innovations & full technical specs for "${parsedData.title || 'Prototype'}".`;
+                        elDocxBadge.classList.remove('hidden');
+
+                        showToast("Exhaustive proposal extraction complete!", "teal");
+                    }
+                } catch (err) {
+                    console.error("DOCX Extraction Error:", err);
+                    showToast("Error processing DOCX document: " + err.message, "red");
+                } finally {
+                    elFileDocx.value = ''; // Reset input
+                }
+            };
+
+            reader.readAsArrayBuffer(file);
+        });
+
+        // Image Sketch File Upload Handler
+        elFileSketch.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const base64Data = event.target.result;
+                state.uploadedSketchBase64 = base64Data.split(',')[1]; // Strip data URL header
+                elSketchPreview.src = base64Data;
+                elSketchContainer.classList.remove('hidden');
+                elBtnClearSketch.classList.remove('hidden');
+                elUploadStatus.textContent = 'Sketch Attached';
+                elUploadStatus.classList.add('text-teal-400');
+            };
+            reader.readAsDataURL(file);
+        });
+
+        elBtnClearSketch.addEventListener('click', () => {
+            state.uploadedSketchBase64 = null;
+            elFileSketch.value = '';
+            elSketchContainer.classList.add('hidden');
+            elBtnClearSketch.classList.add('hidden');
+            elUploadStatus.textContent = 'No image loaded';
+            elUploadStatus.classList.remove('text-teal-400');
+        });
+
+        // Modal triggers
+        document.getElementById('btn-templates-modal').addEventListener('click', () => {
+            document.getElementById('modal-templates').classList.remove('hidden');
+        });
+
+        document.querySelectorAll('.btn-close-modal').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.getElementById('modal-templates').classList.add('hidden');
+                document.getElementById('modal-patent-export').classList.add('hidden');
+            });
+        });
+
+        // Preset Template Cards Click
+        document.querySelectorAll('.template-card').forEach(card => {
+            card.addEventListener('click', () => {
+                elTitle.value = card.getAttribute('data-title');
+                elCategory.value = card.getAttribute('data-category');
+                elStyle.value = card.getAttribute('data-style');
+                elDescription.value = card.getAttribute('data-desc');
+                elNovelty.value = card.getAttribute('data-novelty');
+                elDocxBadge.classList.add('hidden');
+                document.getElementById('modal-templates').classList.add('hidden');
+            });
+        });
+
+        // Quick Refinement Suggestion Buttons
+        document.querySelectorAll('.tag-quick-refine').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                elInputRefine.value = e.target.textContent.trim();
+            });
+        });
+
+        // Auto-Suggest Description, Form Factor, Category and Style from Title
+        elBtnAutoSuggest.addEventListener('click', async () => {
+            const title = elTitle.value.trim();
+            if (!title) {
+                showToast("Please enter a Prototype Name or Title first (e.g. 'HydroSphere Solar Purifier')", "amber");
+                elTitle.focus();
+                return;
+            }
+
+            elBtnAutoSuggest.disabled = true;
+            const originalText = elBtnAutoSuggest.innerHTML;
+            elBtnAutoSuggest.innerHTML = `<i class="fa-solid fa-spinner animate-spin text-amber-300"></i> Generating...`;
+
+            const prompt = `Given the prototype title "${title}", generate detailed, realistic, and innovative industrial prototype specifications:
+1. Product Category matching one of: Consumer Tech & Wearables, Smart Home & IoT, Medical & Bio-Tech Device, Industrial & Robotics, Automotive & Mobility, Sci-Fi / Futuristic Hardware, Apparel & Footwear Tech.
+2. A comprehensive functional description and ergonomic form factor (physical shape, dimensions, materials, user controls, ergonomics, structural detail).
+3. A unique novelty feature / patentable innovation.
+4. Recommended visual CAD rendering style matching one of: Industrial Design Studio Render, Exploded View Technical Diagram, Patent Line Drawing Draft, Minimalist Anodized Aluminum, Transparent Cyberpunk Neomorphic, Matte Black Matte Finish Engineering Mockup.`;
+
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }],
+                systemInstruction: {
+                    parts: [{ text: "You are an expert industrial designer, ergonomics engineer, and patent attorney." }]
+                },
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            category: { type: "STRING" },
+                            description: { type: "STRING" },
+                            novelty: { type: "STRING" },
+                            style: { type: "STRING" }
+                        },
+                        propertyOrdering: ["category", "description", "novelty", "style"]
+                    }
+                }
+            };
+
+            try {
+                const data = await fetchWithBackoff(GEMINI_TEXT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
+                    const result = JSON.parse(data.candidates[0].content.parts[0].text);
+
+                    if (result.description) elDescription.value = result.description;
+                    if (result.novelty) elNovelty.value = result.novelty;
+                    if (result.category) {
+                        const matchedCat = Array.from(elCategory.options).find(opt => opt.value.toLowerCase().includes(result.category.toLowerCase()) || result.category.toLowerCase().includes(opt.value.toLowerCase()));
+                        if (matchedCat) elCategory.value = matchedCat.value;
+                    }
+                    if (result.style) {
+                        const matchedStyle = Array.from(elStyle.options).find(opt => opt.value.toLowerCase().includes(result.style.toLowerCase()) || result.style.toLowerCase().includes(opt.value.toLowerCase()));
+                        if (matchedStyle) elStyle.value = matchedStyle.value;
+                    }
+
+                    showToast("Form factor and functional specs auto-filled!", "teal");
+                }
+            } catch (err) {
+                console.error(err);
+                showToast("Failed to auto-suggest specs: " + err.message, "red");
+            } finally {
+                elBtnAutoSuggest.disabled = false;
+                elBtnAutoSuggest.innerHTML = originalText;
+            }
+        });
+
+        async function fetchWithBackoff(url, options, maxRetries = 3) {
+            let delay = 1000;
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const res = await fetch(url, options);
+                    if (res.ok) return await res.json();
+                    if (res.status === 429) {
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        delay *= 2;
+                        continue;
+                    }
+                    const errData = await res.json();
+                    throw new Error(errData.error?.message || `HTTP Error ${res.status}`);
+                } catch (err) {
+                    if (i === maxRetries - 1) throw err;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    delay *= 2;
+                }
+            }
+        }
+
+        elBtnEnhance.addEventListener('click', async () => {
+            const desc = elDescription.value.trim();
+            const title = elTitle.value.trim() || 'Untitled Prototype';
+            const novelty = elNovelty.value.trim();
+
+            if (!desc && !novelty) {
+                showToast("Please enter a brief description or novelty claim first.", "amber");
+                return;
+            }
+
+            elBtnEnhance.disabled = true;
+            elBtnEnhance.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Analyzing...`;
+
+            const prompt = `Analyze this hardware prototype concept and expand it into a complete engineering spec:
+Product Title: ${title}
+Category: ${elCategory.value}
+User Description: ${desc}
+Claimed Novelty: ${novelty}
+
+Provide a structured response optimizing the engineering specification, material selection, and unique selling points.`;
+
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }],
+                systemInstruction: {
+                    parts: [{ text: "You are a senior industrial designer and patent engineering expert. Analyze hardware novelty, provide material recommendations, and write an expanded high-detail visual prompt for AI image rendering." }]
+                },
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            enhancedVisualPrompt: { type: "STRING" },
+                            noveltyAnalysis: { type: "STRING" },
+                            keyInnovations: { type: "ARRAY", items: { type: "STRING" } },
+                            suggestedMaterials: { type: "ARRAY", items: { type: "STRING" } }
+                        },
+                        propertyOrdering: ["enhancedVisualPrompt", "noveltyAnalysis", "keyInnovations", "suggestedMaterials"]
+                    }
+                }
+            };
+
+            try {
+                const data = await fetchWithBackoff(GEMINI_TEXT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
+                    const resultJson = JSON.parse(data.candidates[0].content.parts[0].text);
+                    state.activeNoveltyData = resultJson;
+
+                    // Update inputs
+                    if (resultJson.enhancedVisualPrompt) {
+                        elDescription.value = resultJson.enhancedVisualPrompt;
+                    }
+
+                    // Render Novelty Analysis Card
+                    renderNoveltyCard(resultJson);
+                    showToast("Novelty analysis completed & prompt enhanced!", "teal");
+                }
+            } catch (err) {
+                console.error(err);
+                showToast("Failed to run novelty analysis: " + err.message, "red");
+            } finally {
+                elBtnEnhance.disabled = false;
+                elBtnEnhance.innerHTML = `<i class="fa-solid fa-bolt"></i> AI Novelty Enhancer`;
+            }
+        });
+
+        function renderNoveltyCard(data) {
+            elNoveltyCard.classList.remove('hidden');
+            let html = `<p class="text-slate-300 leading-relaxed text-[11px]">${data.noveltyAnalysis || ''}</p>`;
+
+            if (data.keyInnovations && data.keyInnovations.length > 0) {
+                html += `<div class="mt-2"><span class="font-semibold text-teal-400 text-[11px]">Key Patent Claims / Features:</span><ul class="list-disc list-inside text-slate-300 mt-1 space-y-0.5 text-[11px]">`;
+                data.keyInnovations.forEach(item => {
+                    html += `<li>${item}</li>`;
+                });
+                html += `</ul></div>`;
+            }
+
+            if (data.suggestedMaterials && data.suggestedMaterials.length > 0) {
+                html += `<div class="mt-2 flex flex-wrap gap-1 items-center"><span class="font-semibold text-slate-400 mr-1 text-[11px]">Materials:</span>`;
+                data.suggestedMaterials.forEach(mat => {
+                    html += `<span class="bg-slate-800 text-slate-300 px-2 py-0.5 rounded text-[10px] border border-slate-700">${mat}</span>`;
+                });
+                html += `</div>`;
+            }
+
+            elNoveltyContent.innerHTML = html;
+        }
+
+        elBtnGenerate.addEventListener('click', () => generatePrototypeImage(false));
+        elBtnRefine.addEventListener('click', () => generatePrototypeImage(true));
+
+        async function generatePrototypeImage(isRefinement = false) {
+            const title = elTitle.value.trim() || 'Experimental Hardware Prototype';
+            const category = elCategory.value;
+            const style = elStyle.value;
+            const desc = elDescription.value.trim();
+            const novelty = elNovelty.value.trim();
+            const refineText = elInputRefine.value.trim();
+
+            if (!isRefinement && !desc && !novelty && !state.uploadedSketchBase64) {
+                showToast("Please provide a description, novelty claim, or napkin sketch image.", "amber");
+                return;
+            }
+
+            if (isRefinement && !refineText) {
+                showToast("Please enter an instruction to refine the prototype.", "amber");
+                return;
+            }
+
+            // UI State loading
+            showLoading(true, isRefinement ? "Applying iterative prototype refinement..." : "Synthesizing industrial prototype rendering...");
+
+            try {
+                if (!isRefinement) {
+                    // Reset chat session history for fresh generation
+                    state.chatHistory = [];
+
+                    // Construct robust visual prompt
+                    let fullPrompt = `A high-resolution, photorealistic prototype render of '${title}'.\n`;
+                    fullPrompt += `Product Category: ${category}.\n`;
+                    fullPrompt += `Aesthetic Style: ${style}.\n`;
+                    if (desc) fullPrompt += `Detailed Specification: ${desc}.\n`;
+                    if (novelty) fullPrompt += `Key Novelty & Unique Mechanical Feature: ${novelty}.\n`;
+                    fullPrompt += `Ensure clean studio lighting, realistic material textures (e.g. brushed metal, polished glass, matte polymer), crisp engineering details, clear presentation.`;
+
+                    const userParts = [{ text: fullPrompt }];
+
+                    // Append base64 sketch if uploaded
+                    if (state.uploadedSketchBase64) {
+                        userParts.push({
+                            inlineData: {
+                                mimeType: 'image/png',
+                                data: state.uploadedSketchBase64
+                            }
+                        });
+                        userParts[0].text += " Transform the provided reference sketch into a finished professional hardware prototype.";
+                    }
+
+                    state.chatHistory.push({
+                        role: 'user',
+                        parts: userParts
+                    });
+
+                } else {
+                    // Multi-turn iteration turn
+                    const refinePrompt = `Update the current prototype rendering with the following specific modification: ${refineText}. Maintain identical overall product shape and identity, but integrate the new feature seamlessly.`;
+                    state.chatHistory.push({
+                        role: 'user',
+                        parts: [{ text: refinePrompt }]
+                    });
+                    elInputRefine.value = ''; // clear input
+                }
+
+                // Call Gemini Flash Image API
+                const payload = {
+                    contents: state.chatHistory,
+                    generationConfig: {
+                        responseModalities: ['TEXT', 'IMAGE'],
+                        imageConfig: {
+                            aspectRatio: state.aspectRatio
+                        }
+                    }
+                };
+
+                const result = await fetchWithBackoff(GEMINI_IMAGE_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const candidate = result?.candidates?.[0];
+                if (!candidate) throw new Error("No candidates returned from Gemini Flash Image model.");
+
+                // Check for image inlineData in response
+                const imagePart = candidate.content?.parts?.find(p => p.inlineData);
+
+                if (imagePart && imagePart.inlineData?.data) {
+                    const mimeType = imagePart.inlineData.mimeType || 'image/png';
+                    const imageUrl = `data:${mimeType};base64,${imagePart.inlineData.data}`;
+
+                    // Save model turn into state.chatHistory for subsequent multi-turn iterations
+                    state.chatHistory.push(candidate.content);
+
+                    // Update UI Canvas
+                    state.activeRenderUrl = imageUrl;
+                    displayRenderedImage(imageUrl);
+
+                    // Add to Revision History Gallery
+                    addHistoryRecord(imageUrl, isRefinement ? `Rev ${state.history.length + 1}: ${refineText.slice(0, 20)}...` : `v1.0 Initial Concept`);
+
+                    showToast(isRefinement ? "Prototype successfully refined!" : "Prototype rendering complete!", "teal");
+                } else {
+                    throw new Error("Model response did not contain inline image data.");
+                }
+
+            } catch (err) {
+                console.error(err);
+                showToast("Generation error: " + err.message, "red");
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function displayRenderedImage(url) {
+            elEmptyState.classList.add('hidden');
+            elCanvasContainer.classList.remove('hidden');
+            elPrototypeImg.src = url;
+
+            elPrototypeImg.onload = () => {
+                // Resize annotation canvas to match prototype image display
+                elAnnotationCanvas.width = elPrototypeImg.width;
+                elAnnotationCanvas.height = elPrototypeImg.height;
+                redrawAnnotations();
+            };
+        }
+
+        function addHistoryRecord(url, label) {
+            const versionNum = state.history.length + 1;
+            state.history.push({ version: versionNum, url, label });
+
+            elBadgeVersion.textContent = `v${versionNum}.0 - Active`;
+            elHistoryCount.textContent = `${state.history.length} revision${state.history.length > 1 ? 's' : ''}`;
+
+            // Render thumbnails
+            elHistoryList.innerHTML = '';
+            state.history.forEach((item, idx) => {
+                const thumb = document.createElement('div');
+                thumb.className = `relative flex-shrink-0 w-16 h-16 rounded-lg border-2 cursor-pointer overflow-hidden transition group ${idx === state.history.length - 1 ? 'border-teal-400' : 'border-slate-800 hover:border-slate-600'}`;
+                thumb.innerHTML = `
+                    <img src="${item.url}" class="w-full h-full object-cover">
+                    <span class="absolute bottom-0 inset-x-0 bg-slate-950/80 text-[8px] text-slate-300 text-center py-0.5 truncate px-0.5">${item.label}</span>
+                `;
+                thumb.addEventListener('click', () => {
+                    state.activeRenderUrl = item.url;
+                    displayRenderedImage(item.url);
+                    document.querySelectorAll('#history-list > div').forEach(d => d.classList.replace('border-teal-400', 'border-slate-800'));
+                    thumb.classList.replace('border-slate-800', 'border-teal-400');
+                    elBadgeVersion.textContent = `v${item.version}.0 - Active`;
+                });
+                elHistoryList.appendChild(thumb);
+            });
+        }
+
+        const ctx = elAnnotationCanvas.getContext('2d');
+        let isDrawing = false;
+        let startX = 0, startY = 0;
+
+        document.querySelectorAll('.btn-tool').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.btn-tool').forEach(b => {
+                    b.classList.remove('bg-blue-600', 'text-white', 'border-blue-400');
+                    b.classList.add('bg-slate-800', 'text-slate-300', 'border-slate-700');
+                });
+                const target = e.currentTarget;
+                target.classList.remove('bg-slate-800', 'text-slate-300', 'border-slate-700');
+                target.classList.add('bg-blue-600', 'text-white', 'border-blue-400');
+
+                if (target.id === 'tool-arrow') state.activeTool = 'arrow';
+                else if (target.id === 'tool-callout') state.activeTool = 'callout';
+                else state.activeTool = 'select';
+            });
+        });
+
+        document.getElementById('tool-clear-annotations').addEventListener('click', () => {
+            state.annotations = [];
+            redrawAnnotations();
+        });
+
+        elAnnotationCanvas.addEventListener('mousedown', (e) => {
+            if (state.activeTool === 'select') return;
+            const rect = elAnnotationCanvas.getBoundingClientRect();
+            startX = e.clientX - rect.left;
+            startY = e.clientY - rect.top;
+            isDrawing = true;
+        });
+
+        elAnnotationCanvas.addEventListener('mouseup', (e) => {
+            if (!isDrawing) return;
+            isDrawing = false;
+            const rect = elAnnotationCanvas.getBoundingClientRect();
+            const endX = e.clientX - rect.left;
+            const endY = e.clientY - rect.top;
+
+            if (state.activeTool === 'arrow') {
+                state.annotations.push({ type: 'arrow', x1: startX, y1: startY, x2: endX, y2: endY });
+            } else if (state.activeTool === 'callout') {
+                const text = prompt("Enter feature label text:", "Novel Feature");
+                if (text) {
+                    state.annotations.push({ type: 'callout', x: endX, y: endY, text });
+                }
+            }
+            redrawAnnotations();
+        });
+
+        function redrawAnnotations() {
+            ctx.clearRect(0, 0, elAnnotationCanvas.width, elAnnotationCanvas.height);
+
+            state.annotations.forEach(ann => {
+                if (ann.type === 'arrow') {
+                    drawArrow(ctx, ann.x1, ann.y1, ann.x2, ann.y2, '#00f2fe', 3);
+                } else if (ann.type === 'callout') {
+                    // Draw Tag Marker
+                    ctx.fillStyle = '#2563eb';
+                    ctx.beginPath();
+                    ctx.arc(ann.x, ann.y, 6, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+
+                    // Text Box
+                    ctx.font = '11px Inter, sans-serif';
+                    const textWidth = ctx.measureText(ann.text).width;
+                    ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+                    ctx.fillRect(ann.x + 8, ann.y - 12, textWidth + 12, 20);
+                    ctx.strokeStyle = '#3b82f6';
+                    ctx.strokeRect(ann.x + 8, ann.y - 12, textWidth + 12, 20);
+
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillText(ann.text, ann.x + 14, ann.y + 2);
+                }
+            });
+        }
+
+        function drawArrow(context, fromx, fromy, tox, toy, color, width) {
+            const headlen = 10;
+            const dx = tox - fromx;
+            const dy = toy - fromy;
+            const angle = Math.atan2(dy, dx);
+            context.strokeStyle = color;
+            context.lineWidth = width;
+            context.beginPath();
+            context.moveTo(fromx, fromy);
+            context.lineTo(tox, toy);
+            context.lineTo(tox - headlen * Math.cos(angle - Math.PI / 6), toy - headlen * Math.sin(angle - Math.PI / 6));
+            context.moveTo(tox, toy);
+            context.lineTo(tox - headlen * Math.cos(angle + Math.PI / 6), toy - headlen * Math.sin(angle + Math.PI / 6));
+            context.stroke();
+        }
+
+        document.getElementById('btn-export-patent-pdf').addEventListener('click', () => {
+            if (!state.activeRenderUrl) {
+                showToast("Please generate a prototype render before exporting a patent brief.", "amber");
+                return;
+            }
+
+            document.getElementById('patent-doc-title').textContent = (elTitle.value.trim() || 'PROTOTYPE NOVELTY BRIEF').toUpperCase();
+            document.getElementById('patent-doc-category').textContent = `Category: ${elCategory.value} | Style: ${elStyle.value}`;
+            document.getElementById('patent-doc-date').textContent = new Date().toISOString().split('T')[0];
+            document.getElementById('patent-doc-id').textContent = Math.floor(10000 + Math.random() * 90000);
+            document.getElementById('patent-doc-image').src = state.activeRenderUrl;
+            document.getElementById('patent-doc-desc').textContent = elDescription.value.trim() || 'No description entered.';
+            document.getElementById('patent-doc-novelty').textContent = elNovelty.value.trim() || 'No specific novelty claims recorded.';
+
+            // Render AI Specs inside brief
+            const specBox = document.getElementById('patent-doc-specs-content');
+            if (state.activeNoveltyData) {
+                let text = `[NOVELTY CLAIMS & PATENT HIGHLIGHTS]\n`;
+                (state.activeNoveltyData.keyInnovations || []).forEach((c, i) => {
+                    text += `${i+1}. ${c}\n`;
+                });
+                text += `\n[SPECIFIED ENGINEERING MATERIALS]\n`;
+                text += (state.activeNoveltyData.suggestedMaterials || []).join(', ') || 'N/A';
+                if (state.activeNoveltyData.noveltyAnalysis) {
+                    text += `\n\n[NOVELTY ANALYSIS SYNTHESIS]\n${state.activeNoveltyData.noveltyAnalysis}`;
+                }
+                specBox.textContent = text;
+            } else {
+                specBox.textContent = "Run 'AI Novelty Enhancer' or import a proposal DOCX to populate automated engineering claims and materials analysis.";
+            }
+
+            document.getElementById('modal-patent-export').classList.remove('hidden');
+        });
+
+        document.getElementById('btn-print-patent').addEventListener('click', () => {
+            window.print();
+        });
+
+        document.getElementById('btn-download-render').addEventListener('click', () => {
+            if (!state.activeRenderUrl) return;
+
+            // Merge image + annotation canvas for download
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = elPrototypeImg.naturalWidth || 800;
+            tempCanvas.height = elPrototypeImg.naturalHeight || 800;
+            const tctx = tempCanvas.getContext('2d');
+
+            const img = new Image();
+            img.onload = () => {
+                tctx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
+                tctx.drawImage(elAnnotationCanvas, 0, 0, tempCanvas.width, tempCanvas.height);
+
+                const link = document.createElement('a');
+                link.download = `${(elTitle.value || 'prototype').replace(/\s+/g, '_')}_render.png`;
+                link.href = tempCanvas.toDataURL('image/png');
+                link.click();
+            };
+            img.src = state.activeRenderUrl;
+        });
+
+        function showLoading(show, message = "Generating Prototype...") {
+            if (show) {
+                elLoadingText.textContent = message;
+                elRenderLoading.classList.remove('hidden');
+            } else {
+                elRenderLoading.classList.add('hidden');
+            }
+        }
+
+        function showToast(msg, color = 'blue') {
+            const toast = document.createElement('div');
+            const bgClass = color === 'teal' ? 'bg-teal-900 border-teal-500 text-teal-200' :
+                            color === 'amber' ? 'bg-amber-900 border-amber-500 text-amber-200' :
+                            color === 'red' ? 'bg-red-900 border-red-500 text-red-200' : 'bg-blue-900 border-blue-500 text-blue-200';
+
+            toast.className = `fixed bottom-5 right-5 z-50 px-4 py-2.5 rounded-xl border ${bgClass} text-xs shadow-2xl transition transform translate-y-full flex items-center gap-2 max-w-md`;
+            toast.innerHTML = `<i class="fa-solid fa-circle-info"></i> <span>${msg}</span>`;
+            document.body.appendChild(toast);
+
+            setTimeout(() => toast.classList.remove('translate-y-full'), 10);
+            setTimeout(() => {
+                toast.classList.add('translate-y-full');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+    </script>
+</body>
+</html>
